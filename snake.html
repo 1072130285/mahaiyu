@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>贪吃蛇游戏</title>
+		<style>
+			.wrap div {
+				width: 40px;
+				height: 40px;
+				border: 1px solid skyblue;
+				float: left;
+			}
+			
+			.wrap {
+				margin: 20px auto;
+				background: black;
+				margin-top: 80px;
+				position: relative;
+			}
+			
+			.wrap::after {
+				content: '';
+				display: block;
+				clear: both;
+			}
+			
+			#btn1,#btn2 {
+				width: 100px;
+				height: 40px;
+				font-size: 18px;
+				position: absolute;
+				top: 45%;
+				left: 48%;
+			}
+			#btn2 {
+				display: none;
+			}
+			
+			.before {
+				background: black;
+			}
+			
+			.after {
+				background: aquamarine;
+				border-radius: 50%;
+			}
+			
+			.foods {
+				background: red;
+				border-radius: 50%;
+			}
+			
+			p {
+				position: absolute;
+				font-size: 20px;
+				top: 0px;
+				left: 45%;
+			}
+		</style>
+	</head>
+
+	<body>
+		<p class="score">分数 ：0</p>
+		<div class="wrap"></div>
+		<button id="btn1">开始游戏</button>
+		<button id="btn2">再来一次</button>
+	</body>
+	<script type="text/javascript" src="../../jquery-3.2.1.min.js"></script>
+	<script type="text/javascript">
+		$('.wrap').css('width', (40 + 2) * 15 + 'px'); //为wrap设置宽度
+		//利用循环创建小盒子（15*15）
+		//循环嵌套：外层循环控制行，内层循环控制列
+		var arrx = []; //行数组
+		var arry = []; //列数组
+		for(var j = 0; j < 15; j++) { //行
+			arry = [];
+			for(var i = 0; i < 15; i++) { //列
+				var newdiv = $('<div class="before"></div>'); //添加div
+				$('.wrap').append(newdiv); //将div尾部添加到wrap中去
+				arry.push(newdiv);
+			}
+			arrx.push(arry);
+		}
+		//封装随机数函数
+		function randomnum(x, y) {
+			return Math.round(Math.random() * (y - x) + x);
+		}
+		//随机生成食物
+		var a, b; //定义两个变量记录食物出现的坐标
+		function food() {
+			a = randomnum(0, 14);
+			b = randomnum(0, 14);
+			if($(arrx[a][b]).css('background-color') == 'rgb(127, 255, 212)') {
+				food();
+			} else {
+				$(arrx[a][b]).addClass('foods');
+			}
+		}
+		//创建蛇
+		var snakelongarr = []; //蛇长度的数组
+		//long表示蛇身的长度
+		function createsnake(long) {
+			for(var i = 0; i < long; i++) {
+				$(arrx[0][i]).toggleClass('after'); //将class名为before改为after
+				snakelongarr.push(arrx[0][i]);
+			}
+		}
+		createsnake(3);
+		food();
+		var indexX = 2; //行坐标
+		var indexY = 0; //列坐标
+		var score = 0; //分数
+		//蛇移动
+		function movefn() {
+
+			//判断蛇吃食物
+			if(indexX == b && indexY == a) {
+				$(arrx[indexY][indexX]).attr('class', 'after');
+				snakelongarr.push(arrx[indexY][indexX]);
+				score++;
+				$('.score').text('分数 ：' + score);
+				food();
+			} else {
+				$(arrx[indexY][indexX]).attr('class', 'after');
+				snakelongarr.push(arrx[indexY][indexX]);
+				$(snakelongarr[0]).attr('class', 'before');
+				snakelongarr.shift();
+			}
+		}
+		var d = 'right'; //定义蛇运动的方向，初始方向为右
+		var flag = 1; //防止频繁点击出错的开关
+		//给对应的键码指定方向:left:37 top:38 right:39 bottom:40
+		$(document).keydown(function(event) {
+			var e = window.event || event;
+			if(flag == 0) {
+				return;
+			}
+			if(d == 'left' && e.keyCode == 39) {
+				return;
+			}
+			if(d == 'top' && e.keyCode == 40) {
+				return;
+			}
+			if(d == 'right' && e.keyCode == 37) {
+				return;
+			}
+			if(d == 'bottom' && e.keyCode == 38) {
+				return;
+			}
+			flag = 0;
+			switch(e.keyCode) {
+				case 37:
+					d = 'left';
+					break;
+				case 38:
+					d = 'top';
+					break;
+				case 39:
+					d = 'right';
+					break;
+				case 40:
+					d = 'bottom';
+					break;
+			}
+		});
+		//根据上面对应的键码来指定蛇运动的方向
+		var movetimer;
+
+		function movesnake() {
+			movetimer = setInterval(function() {
+				//对蛇出边界做出判断
+				flag = 1;
+				switch(d) {
+					case 'left': //左
+						indexX--;
+						break;
+					case 'top': //上
+						indexY--;
+						break;
+					case 'right': //右
+						indexX++;
+						break;
+					case 'bottom': //下
+						indexY++;
+						break;
+				}
+				if(indexX < 0 || indexY < 0 || indexX >= 15 || indexY >= 15 || arrx[indexY][indexX].attr('class') == 'after') {
+					alert('游戏结束！');
+					$('#btn2').css('display', 'block');
+					clearInterval(movetimer);
+					document.onkeydown = null; //停止键盘监听
+					return;
+				}
+				movefn();
+			}, 100)
+
+		}
+		//开始游戏按钮点击事件
+		$('#btn1').click(function() {
+			movesnake();
+			$('#btn1').css('display', 'none');
+		})
+		//再来一次按钮点击事件
+		$('#btn2').click(function() {
+			$('#btn2').css('display', 'none');
+			score = 0;
+			$('.score').text('分数 ：0');
+			d = 'right';
+			for(var i = 0;i<snakelongarr.length;i++){
+				snakelongarr[i].toggleClass('after before');
+			}
+			indexX = 2;
+		 	indexY = 0;
+			snakelongarr = [];
+			createsnake(3);
+			movesnake();
+		})
+	</script>
+
+</html>

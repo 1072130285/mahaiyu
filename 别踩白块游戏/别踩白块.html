@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>别踩白块</title>
+		<style type="text/css">
+			.wrap {
+				width: 480px;
+				margin: 0 auto;
+				position: relative;
+			}
+			
+			#mc {
+				border: 1px solid black;
+				background: white;
+			}
+			
+			span {
+				display: inline-block;
+				margin: 10px 0;
+				font-size: 18px;
+			}
+			
+			#sp2 {
+				color: red;
+				margin-left: 20px;
+			}
+			
+			#btn {
+				float: right;
+				width: 80px;
+				height: 40px;
+				background: skyblue;
+				color: white;
+				border-radius: 5px;
+				font-size: 16px;
+				margin-top: 5px;
+				cursor: pointer;
+			}
+			
+			.start {
+				width: 485px;
+				height: 805px;
+				position: absolute;
+				top: 0;
+				left: 0;
+			}
+			
+			img {
+				width: 100%;
+				height: 100%;
+			}
+			
+			.text {
+				text-align: center;
+				color: white;
+				font-size: 30px;
+				position: absolute;
+				top: 20%;
+				left: 60px;
+			}
+			
+			.end {
+				width: 485px;
+				height: 805px;
+				position: absolute;
+				top: 0;
+				left: 0;
+				text-align: center;
+				background: rgb(253,62,54);
+				display: none;
+			}
+			
+			.text2 {
+				margin-top: 40%;
+				color: white;
+				font-size: 30px;
+			}
+			
+			.endtime {
+				font-size: 70px;
+				margin: 0;
+				color: black;
+				font-weight: bold;
+			}
+			
+			.success {
+				width: 485px;
+				height: 805px;
+				position: absolute;
+				top: 0;
+				left: 0;
+				text-align: center;
+				background: rgb(83, 214, 102);
+				display: none;
+			}
+			
+			.text3 {
+				margin-top: 20%;
+				color: white;
+				font-size: 30px;
+			}
+			
+			.endtime1 {
+				font-size: 70px;
+				margin: 0;
+				color: black;
+				font-weight: bold;
+			}
+			
+			.again {
+				font-size: 25px;
+				cursor: pointer;
+			}
+			
+			.best {
+				color: red;
+			}
+			
+			.jilu {
+				color: yellow;
+				font-size: 20px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="wrap">
+			<canvas id="mc" width="480" height="800"></canvas>
+			<span id="sp1">分数：0 分</span>
+			<span id="sp2">时间：00:00 s</span>
+			<button id="btn">开始游戏</button>
+			<div class="start">
+				<img src="1.png" />
+			</div>
+			<div class="end">
+				<div class="text2">
+					<p>踩到白块啦！！！</p>
+					<h3>经 典 模 式</h3>
+					<p class="endtime"></p>
+					<p class="endscore"></p>
+					<span class="again">再试一次</span>
+				</div>
+			</div>
+			<div class="success">
+				<div class="text3">
+					<p>恭喜您，过关了！！！</p>
+					<h3>经 典 模 式</h3>
+					<p class="endtime1"></p>
+					<p class="jilu"></p>
+					<p class="endscore1"></p>
+					<p class="best"></p>
+					<span class="again">再试一次</span>
+				</div>
+			</div>
+			<div class="text">
+				<h3>游戏说明</h3>
+				<p>不要踩到白块哦 😇</p>
+				<p>看看谁用时最短,得分最高！😇</p>
+				<p>点下右下方开始游戏吧！😇</p>
+			</div>
+		</div>
+	</body>
+	<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+	<script type="text/javascript">
+		var mc = document.getElementById('mc'); //画布
+		var ctx = mc.getContext('2d'); //画笔
+		var score = 0;
+		//封装随机数函数
+		function rn(x, y) {
+			return Math.round(Math.random() * (y - x) + x)
+		}
+		//绘制游戏界面
+		function Draw() {
+			this.bricksarr = []; //砖块数组
+			this.rows = 4; //四行
+			this.cols = 4; //四列
+			//砖块的宽度
+			this.blockwidth = mc.width / 4;
+			//砖块的高度
+			this.blockheight = mc.height / 4;
+			this.mouseclick();
+		}
+		//Draw的原型方法
+		Draw.prototype.block = function() {
+			ctx.clearRect(0, 0, 480, 800);
+			this.drawgrid(); //画方格
+			this.drawblack(); //画砖块
+		}
+		//开始游戏
+
+		Draw.prototype.gamestart = function() {
+			var me = this;
+			me.numrows = 100; //总的砖块数
+			me.startTime = new Date(); //记录游戏开始时间
+			me.timer = setInterval(function() { //每110ms循环调用函数（显示时间）
+				var showtime = new Date() - me.startTime; //现在时间减去开始时间等于显示时间
+				$('#sp2').text('时间：' + showtime / 1000);
+			}, 110)
+			me.iniebrick();
+			me.block();
+		}
+		//开始游戏按钮的点击事件
+		$('#btn').click(function() {
+			ctx.clearRect(0, 0, 480, 800);
+			$('#btn').css('display', 'none');
+			$('.start').css('display', 'none');
+			$('.text').css('display', 'none');
+			var kaishi = new Draw();
+			kaishi.gamestart();
+		});
+		//再试一次按钮的点击事件
+		$('.again').click(function() {
+			history.go(0);
+			//				score = 0; //初始化分数
+			//				$('#sp1').text('分数：0 分');
+			//				ctx.clearRect(0, 0, 480, 800);
+			//				var kaishi = new Draw();
+			//				kaishi.gamestart();
+			//				$('.success').css('display', 'none');
+			//				$('.end').css('display', 'none');
+
+		});
+		Draw.prototype.drawgrid = function() {
+			//画网格
+			ctx.beginPath();
+			for(var i = 1; i < this.cols; i++) { //列
+				ctx.moveTo(i * this.blockwidth, 0);
+				ctx.lineTo(i * this.blockwidth, mc.height);
+			}
+			for(var i = 1; i < this.rows; i++) { //行
+				ctx.moveTo(0, i * this.blockheight);
+				ctx.lineTo(mc.width, i * this.blockheight);
+			}
+			ctx.stroke();
+			ctx.closePath();
+		}
+		Draw.prototype.iniebrick = function() {
+			//每一行的砖块出现在哪一列的位置是随机的
+			for(var i = 0; i < this.rows; i++) {
+				this.bricksarr[i] = rn(0, 3);
+			}
+		}
+		Draw.prototype.drawblack = function() {
+			//画黑块
+			for(var i = 0; i < this.rows; i++) {
+				var lie = this.bricksarr[i];
+				if(lie != -1) {
+					var x = lie * this.blockwidth;
+					var y = i * this.blockheight;
+					ctx.fillRect(x, y, this.blockwidth, this.blockheight);
+				}
+			}
+		}
+		Draw.prototype.bolckclick = function() {
+			//每个黑块的点击事件
+			var e = event || window.event;
+			//offsetX 设置或获取鼠标指针位置相对于触发事件的对象的 x 坐标。
+			//offsetY 设置或获取鼠标指针位置相对于触发事件的对象的 y 坐标。
+			var x = Math.floor(e.offsetX / 120);
+			var y = Math.floor(e.offsetY / 200);
+			console.log(x,y);
+			if(this.bricksarr[y] == x) {
+				return {
+					row: y,
+					color: 'black'
+				}
+			} else return {
+				row: y,
+				color: 'white'
+			};
+		}
+
+		Draw.prototype.mouseclick = function() { //鼠标点击
+			var me = this;
+			//在canvas上绑定监听事件
+			mc.addEventListener('click', function(e) {
+				//当前时间减去有戏开始时间等于显示时间
+				var time1 = (new Date() - me.startTime) / 1000;
+				var whereclick = me.bolckclick(e); //鼠标正在点击的砖块
+				if(whereclick.color == 'white') { //踩到白块
+					$('.end').css('display', 'block');
+					$('#sp2').text('时间：' + time1 + 's'); //将结束页面的时间写入显示时间里
+					$('.endtime').text(time1 + 's');
+					$('.endscore').text('分数：' + score + '分');
+					clearInterval(me.timer);
+				} else if(whereclick.row == me.rows - 1) { //踩到最后一排黑色砖块
+					me.bricksarr.pop(); //从数组尾部删除最后一排的砖块信息
+					me.numrows--; //总行数减1
+					score++;
+					$('#sp1').text('分数：' + score + '分');
+					if(me.numrows >= me.rows) {
+						me.bricksarr.unshift(rn(0, 3)); //往砖块数组头部添加
+					} else {
+						me.bricksarr.unshift(-1); //-1表示这一排没有砖块
+					}
+					if(me.numrows == 0) {
+						$('.success').css('display', 'block');
+						$('#sp2').text('时间：' + time1 + 's'); //将结束页面的时间写入显示时间里
+						$('.endtime1').text(time1 + 's');
+						$('.endscore1').text('分数：' + score + '分');
+						$('#btn').css('display', 'none');
+						clearInterval(me.timer);
+						//完成numrows个砖块所用的最短时间更新到localStorage中
+						var besttime = localStorage.getItem('besttime');
+						if(besttime == null) {
+							localStorage.setItem('besttime', time1);
+							$('.best').text('最佳成绩：' + time1 + 's');
+						} else {
+							if(besttime > time1) {
+								$('.best').text('最佳成绩：' + time1 + 's');
+								$('.jilu').text('新纪录诞生啦🎉🎉🎉');
+								localStorage.setItem('besttime', time1);
+							} else {
+								$('.best').text('最佳成绩：' + besttime + 's');
+							}
+						}
+					}
+					me.block();
+				}
+			})
+		}
+	</script>
+
+</html>
